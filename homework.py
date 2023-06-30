@@ -41,7 +41,8 @@ LOG_INFO_MESSAGE_SEND_MESSAGE = 'Бот начал отправку сообще
 LOG_DEBUG_MESSAGE_SEND_MESSAGE = 'Отправлено сообщение: {message}'
 SEND_MESSAGE_FAILURE_MESSAGE = 'Сбой при отправке сообщения в Telegram'
 LOG_DEBUG_MESSAGE_GET_API_ANSWER = 'Запущена функция get_api_answer().'
-ERROR_ENDPOINT_MESSAGE = 'Эндпоинт {ENDPOINT} недоступен. Код ответа API: {status_code}'
+ERROR_ENDPOINT_MESSAGE = 'Эндпоинт {ENDPOINT} недоступен. ' \
+                         'Код ответа API: {status_code}'
 REQUEST_FAILURE_MESSAGE = 'Сбой при запросе к эндпоинту'
 LOG_DEBUG_MESSAGE_CHECK_RESPONSE = 'Запущена функция check_response().'
 API_RESPONSE_TYPE_ERROR = 'Ошибка типа данных в ответе API. Ожидается словарь.'
@@ -51,7 +52,8 @@ MISSING_KEY_ERROR_DICT = 'В словаре нет запрашиваемого 
 LOG_DEBUG_MESSAGE_PARSE_STATUS = 'Выполнена функция parse_status().'
 API_REQUEST_ERROR = 'Ошибка при запросе к API-эндпоинту.'
 SEND_MESSAGE_ERROR = 'Ошибка при отправке сообщения в Telegram.'
-PROGRAM_FAILURE_MESSAGE = 'Произошла ошибка выполнения программы: {error_class}: {error}'
+PROGRAM_FAILURE_MESSAGE = 'Произошла ошибка выполнения программы: ' \
+                          '{error_class}: {error}'
 NO_UPDATES_MESSAGE = 'Обновлений нет.'
 
 
@@ -63,7 +65,9 @@ def send_message(bot, message) -> None:
     except telegram.TelegramError as e:
         raise SendMessageException(SEND_MESSAGE_FAILURE_MESSAGE) from e
     else:
-        log_debug_message = LOG_DEBUG_MESSAGE_SEND_MESSAGE.format(message=message)
+        log_debug_message = LOG_DEBUG_MESSAGE_SEND_MESSAGE.format(
+            message=message
+        )
         logging.debug(log_debug_message)
 
 
@@ -73,7 +77,11 @@ def get_api_answer(current_timestamp):
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
     try:
-        homework_statuses = requests.get(ENDPOINT, headers=HEADERS, params=params)
+        homework_statuses = requests.get(
+            ENDPOINT,
+            headers=HEADERS,
+            params=params
+        )
         homework_statuses.raise_for_status()  # Проверка статуса ответа
     except requests.exceptions.RequestException as e:
         raise Exception(REQUEST_FAILURE_MESSAGE) from e
@@ -130,7 +138,9 @@ def check_tokens() -> bool:
 
     if missing_tokens:
         missing_tokens_str = ', '.join(missing_tokens)
-        logging.warning(MISSING_TOKENS_WARNING.format(missing_tokens=missing_tokens_str))
+        logging.warning(MISSING_TOKENS_WARNING.format(
+            missing_tokens=missing_tokens_str
+        ))
         return False
 
     return True
@@ -165,7 +175,10 @@ def main():
         except SendMessageException:
             logging.error(SEND_MESSAGE_ERROR)
         except Exception as error:
-            message = PROGRAM_FAILURE_MESSAGE.format(error=error, error_class=error.__class__)
+            message = PROGRAM_FAILURE_MESSAGE.format(
+                error=error,
+                error_class=error.__class__
+            )
             logging.error(message)
             new_error = str(error)
             if new_error != raised_error:

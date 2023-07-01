@@ -5,6 +5,7 @@ import time
 import requests
 import telegram
 from dotenv import load_dotenv
+from http import HTTPStatus
 
 from exceptions import HomeworkStatusesException, SendMessageException
 
@@ -63,7 +64,7 @@ def send_message(bot, message) -> None:
         logging.info(LOG_INFO_MESSAGE_SEND_MESSAGE)
         bot.send_message(TELEGRAM_CHAT_ID, message)
     except telegram.TelegramError as e:
-        raise SendMessageException(SEND_MESSAGE_FAILURE_MESSAGE) from e
+        raise telegram.TelegramError(SEND_MESSAGE_FAILURE_MESSAGE) from e
     else:
         log_debug_message = LOG_DEBUG_MESSAGE_SEND_MESSAGE.format(
             message=message
@@ -85,15 +86,14 @@ def get_api_answer(current_timestamp):
         homework_statuses.raise_for_status()  # Проверка статуса ответа
     except requests.exceptions.RequestException as e:
         raise Exception(REQUEST_FAILURE_MESSAGE) from e
+    if homework_statuses.status_code == HTTPStatus.OK:
+        return homework_statuses.json()
     else:
-        if homework_statuses.status_code == 200:
-            return homework_statuses.json()
-        else:
-            message = ERROR_ENDPOINT_MESSAGE.format(
-                ENDPOINT=ENDPOINT,
-                status_code=homework_statuses.status_code
-            )
-            raise Exception(message)
+        message = ERROR_ENDPOINT_MESSAGE.format(
+            ENDPOINT=ENDPOINT,
+            status_code=homework_statuses.status_code
+        )
+        raise requests.exceptions.HTTPError(message)
 
 
 def check_response(response) -> list:

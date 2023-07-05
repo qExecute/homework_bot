@@ -63,8 +63,8 @@ def send_message(bot, message) -> None:
     try:
         logging.info(LOG_INFO_MESSAGE_SEND_MESSAGE)
         bot.send_message(TELEGRAM_CHAT_ID, message)
-    except telegram.TelegramError as e:
-        raise telegram.TelegramError(SEND_MESSAGE_FAILURE_MESSAGE) from e
+    except ConnectionError as e:
+        raise ConnectionError(SEND_MESSAGE_FAILURE_MESSAGE) from e
     else:
         log_debug_message = LOG_DEBUG_MESSAGE_SEND_MESSAGE.format(
             message=message
@@ -85,7 +85,7 @@ def get_api_answer(current_timestamp):
         )
         homework_statuses.raise_for_status()  # Проверка статуса ответа
     except requests.exceptions.RequestException as e:
-        raise Exception(REQUEST_FAILURE_MESSAGE) from e
+        raise ConnectionError(REQUEST_FAILURE_MESSAGE) from e
     if homework_statuses.status_code == HTTPStatus.OK:
         return homework_statuses.json()
     else:
@@ -93,7 +93,7 @@ def get_api_answer(current_timestamp):
             ENDPOINT=ENDPOINT,
             status_code=homework_statuses.status_code
         )
-        raise requests.exceptions.HTTPError(message)
+        raise ConnectionError(message)
 
 
 def check_response(response) -> list:
